@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-aerospace-dark: #0B1120;
+  --color-aerospace-panel: #1E293B;
+  --color-aerospace-accent: #0EA5E9;
+  --color-aerospace-border: #334155;
+}
+
+body {
+  background-color: var(--color-aerospace-dark);
+  color: #e2e8f0; /* text-slate-200 equivalent */
+  font-family: sans-serif;
+}
+
+.monospace-report {
+  font-family: 'Courier New', Courier, monospace;
+}

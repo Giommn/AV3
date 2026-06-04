@@ -1,0 +1,162 @@
+// This is your Prisma schema file
+// Aerocode - Sistema de Gestão de Produção de Aeronaves
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enumerações ──────────────────────────────────────────────────────────────
+
+enum TipoAeronave {
+  COMERCIAL
+  MILITAR
+}
+
+enum TipoPeca {
+  NACIONAL
+  IMPORTADA
+}
+
+enum StatusPeca {
+  EM_PRODUCAO
+  EM_TRANSPORTE
+  PRONTA
+}
+
+enum StatusEtapa {
+  PENDENTE
+  ANDAMENTO
+  CONCLUIDA
+}
+
+enum NivelPermissao {
+  ADMINISTRADOR
+  ENGENHEIRO
+  OPERADOR
+}
+
+enum TipoTeste {
+  ELETRICO
+  HIDRAULICO
+  AERODINAMICO
+}
+
+enum ResultadoTeste {
+  APROVADO
+  REPROVADO
+}
+
+// ─── Modelos ──────────────────────────────────────────────────────────────────
+
+model Aeronave {
+  id        Int           @id @default(autoincrement())
+  codigo    String        @unique @db.VarChar(50)
+  modelo    String        @db.VarChar(100)
+  tipo      TipoAeronave
+  capacidade Int
+  alcance   Float         // em km
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  pecas   Peca[]
+  etapas  Etapa[]
+  testes  Teste[]
+  relatorio Relatorio?
+
+  @@map("aeronaves")
+}
+
+model Peca {
+  id         Int        @id @default(autoincrement())
+  nome       String     @db.VarChar(100)
+  tipo       TipoPeca
+  fornecedor String     @db.VarChar(100)
+  status     StatusPeca @default(EM_PRODUCAO)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  aeronaveId Int
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+
+  @@map("pecas")
+}
+
+model Funcionario {
+  id             Int            @id @default(autoincrement())
+  nome           String         @db.VarChar(100)
+  telefone       String         @db.VarChar(20)
+  endereco       String         @db.VarChar(255)
+  usuario        String         @unique @db.VarChar(50)
+  senha          String         @db.VarChar(255) // hash bcrypt
+  nivelPermissao NivelPermissao @default(OPERADOR)
+  ativo          Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  etapas EtapaFuncionario[]
+
+  @@map("funcionarios")
+}
+
+model Etapa {
+  id         Int         @id @default(autoincrement())
+  nome       String      @db.VarChar(100)
+  prazo      DateTime
+  status     StatusEtapa @default(PENDENTE)
+  ordem      Int         // controla sequência lógica das etapas
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  aeronaveId Int
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+
+  funcionarios EtapaFuncionario[]
+
+  @@map("etapas")
+}
+
+model EtapaFuncionario {
+  etapaId       Int
+  funcionarioId Int
+  assignedAt    DateTime @default(now())
+
+  etapa       Etapa       @relation(fields: [etapaId], references: [id], onDelete: Cascade)
+  funcionario Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@id([etapaId, funcionarioId])
+  @@map("etapa_funcionarios")
+}
+
+model Teste {
+  id         Int            @id @default(autoincrement())
+  tipo       TipoTeste
+  resultado  ResultadoTeste
+  observacao String?        @db.Text
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  aeronaveId Int
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+
+  @@map("testes")
+}
+
+model Relatorio {
+  id            Int      @id @default(autoincrement())
+  nomeCliente   String   @db.VarChar(100)
+  dataEntrega   DateTime
+  arquivoPath   String?  @db.VarChar(255)
+  conteudo      String   @db.LongText
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  aeronaveId Int      @unique
+  aeronave   Aeronave @relation(fields: [aeronaveId], references: [id], onDelete: Cascade)
+
+  @@map("relatorios")
+}

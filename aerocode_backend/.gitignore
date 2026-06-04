@@ -1,0 +1,23 @@
+# ── Dependências ─────────────────────────────────────
+node_modules/
+
+# ── Build ────────────────────────────────────────────
+dist/
+
+# ── Ambiente (NUNCA versionar) ────────────────────────
+.env
+*.env
+
+# ── Prisma ───────────────────────────────────────────
+# Manter prisma/schema.prisma no repositório
+# Ignorar apenas saídas geradas
+prisma/migrations/**/migration_lock.toml
+
+# ── Arquivos gerados pelo sistema ─────────────────────
+relatorios/
+*.log
+logs/
+
+# ── Sistema operacional ───────────────────────────────
+.DS_Store
+Thumbs.db
